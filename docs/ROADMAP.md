@@ -31,10 +31,10 @@ Each task lists target files and a *Done when* acceptance criterion.
 
 ## Phase 0 — Foundations & housekeeping (P0, ~0.5 day)
 
-- [ ] **Create the environment.** `conda env create -f environment.yml`, then
+- [ ] ✅ **Create the environment.** `conda env create -f environment.yml`, then
   `pip install -e .`; confirm `linopy`, `highspy`, `scikit-learn-extra`, `rampdemand`
   import. *Done when* `python -m pytest tests/ -q` runs (config + bound tests pass).
-- [ ] **Commit the current work.** Branch off `main`; commit `exact/`, the formulation
+- [ ] ✅ **Commit the current work.** Branch off `main`; commit `exact/`, the formulation
   section, deck, tests and figure with a clear message. *Done when* `git status` is clean
   and history shows the contribution.
 - [ ] **Import data from THESIS** into `data/` per `data/README.md` (RAMP params,

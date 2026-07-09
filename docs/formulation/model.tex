@@ -6,6 +6,7 @@
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{bm}
+\usepackage{graphicx}
 
 \theoremstyle{plain}
 \newtheorem{proposition}{Proposition}
@@ -204,6 +205,13 @@ battery provides storage; and a hybrid inverter performs the alternating- and
 direct-current conversions that couple these assets to the load. The community load is
 the only demand, and there is no connection to a larger grid.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{system_config.png}
+    \caption{microgrid system architecture}
+    \label{fig:system_config}
+\end{figure}
+
 The planner faces uncertainty that resolves only gradually over the lifetime of the
 project. The community's demand grows as households connect, acquire appliances and
 change their usage habits as well as productive usages ; the solar resource evolves with the climate; fuel prices
@@ -216,6 +224,13 @@ are attached to the nodes of this tree and are therefore allowed to depend on, b
 on, the information revealed up to the stage at which they are taken. This information
 restriction---non-anticipativity---is enforced structurally by the tree indexing
 rather than by explicit coupling constraints.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{scenario_tree.png}
+    \caption{scenario tree for the multi-stage formulation}
+    \label{fig:scenarios_tree}
+\end{figure}
 
 A distinctive feature of the present model is its treatment of operation. In the
 classical capacity-expansion formulation the second-stage operating problem is itself an

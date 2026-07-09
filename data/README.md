@@ -1,11 +1,10 @@
 # data/ — provenance
 
-Inputs in this directory are imported from the `THESIS` repository
-(`/home/ssossou/THESIS`). They are copied (not symlinked) so this repository stays
+Inputs in this directory are copied (not symlinked) so this repository stays
 self-contained and reproducible. Record each import below with its source path and
 date.
 
-| Local file | Source (THESIS) | Description | Imported |
+| Local file | Source | Description | Imported |
 |---|---|---|---|
 | _(pending)_ `ramp_params/` | `data/calibration/ramp_params_*.csv` | Calibrated RAMP appliance parameters per (period, cluster) | — |
 | _(pending)_ `irradiance/` | `data/raw/*solar_irradiance*.csv` | Hourly irradiance / specific yield (baseline + per-SSP) | — |
