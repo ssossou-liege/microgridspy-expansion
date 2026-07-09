@@ -29,7 +29,7 @@ tests/                       Assembly, dispatch-fidelity and benchmark checks.
 
 ```bash
 conda env create -f environment.yml
-conda activate microgrid-expansion
+conda activate mgpy_dev
 pip install -e .
 python -m microgrid_expansion.run        # build tree -> assemble MILP -> solve -> KPIs
 ```
