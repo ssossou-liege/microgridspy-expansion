@@ -24,8 +24,7 @@ Each task lists target files and a *Done when* acceptance criterion.
   proven optimal, ~83 % fewer simulations. Figure `results/branch_and_simulate_lattice.png`.
 - ✅ Presentation deck `docs/model_formulation.odp` (22 slides, 7 figures).
 - ✅ Literature scan: contribution confirmed novel (see memory + model.tex prior-work paragraph).
-- ⬜ **Nothing committed since the initial skeleton commit** (`exact/`, deck, formulation
-  section, tests, figure are uncommitted).
+- ✅ Initial commit done and pushed to github remote repo
 - ⬜ No real data imported; conda env not yet created.
 
 ---

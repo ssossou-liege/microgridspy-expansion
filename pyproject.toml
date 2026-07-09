@@ -3,7 +3,7 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "microgrid-expansion"
+name = "microgridpy-expansion"
 version = "0.1.0"
 description = "Multi-stage stochastic capacity-expansion model for off-grid microgrid sizing"
 readme = "README.md"
