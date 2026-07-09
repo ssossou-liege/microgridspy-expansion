@@ -33,8 +33,8 @@ results/**
 docs/formulation/*.pdf
 
 # Data (large imported inputs); keep provenance note
-data/**
-!data/README.md
+# data/**
+# !data/README.md
 
 # OS / editor
 .DS_Store
