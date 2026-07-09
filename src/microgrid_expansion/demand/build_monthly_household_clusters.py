@@ -33,13 +33,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path("data/meter_readings"),
+        default=Path.cwd().resolve().parent[3] / "data" / "demand",
         help="Directory containing parquet readings and household_customers.csv.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results"),
+        default=Path.cwd().resolve().parent[3] / "data" / "ramp_params" / "reference",
         help="Directory where CSV outputs will be written.",
     )
     parser.add_argument(

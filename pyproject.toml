@@ -17,6 +17,9 @@ dependencies = [
     "scikit-learn",
     "linopy",
     "highspy",
+    "cdsapi",
+    "netcdf4",
+    "dask"
 ]
 
 [project.optional-dependencies]
