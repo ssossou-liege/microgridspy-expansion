@@ -50,14 +50,23 @@ SOC_MAX_FRAC = 0.95           # overline{e}   -- protective charge trip
 GEN_MIN_LOAD_FRAC = 0.30      # phi^ge -- minimum stable loading fraction
 
 # ---------------------------------------------------------------------------
-# Capacity increments and discrete catalogues
+# Capacity increments (modular) and the generator catalogue (single, replaceable unit)
 # ---------------------------------------------------------------------------
+# Modular technologies: capacity is added in identical units.
 PV_UNIT_KW = 0.5              # u^pv   -- rated power of one PV panel [kW]
 BATT_UNIT_KWH = 5.0           # u^batt -- usable energy of one battery module [kWh]
+INV_UNIT_KW = 2.5             # u^inv  -- rated power of one inverter module [kW]
 
-# kappa^ge_s, kappa^inv_s -- discrete catalogue ratings [kW]
-GEN_CATALOG_KW = (5.0, 10.0, 18.0, 30.0)
-INV_CATALOG_KW = (5.0, 10.0, 20.0, 40.0)
+# Generator: a single unit chosen from a catalogue and replaced (upgrades only).
+GEN_CATALOG_KW = (5.0, 10.0, 18.0, 30.0)   # kappa^ge_s [kW]
+GEN_SALVAGE_FRAC = 0.40       # V^ge_s -- resale/transfer value as a fraction of capex
+
+# Brownfield initial condition: existing installed capacity at commissioning
+# (all zero -> greenfield; GEN_INITIAL_KW must be a catalogue size).
+INITIAL_PV_KW = 0.0
+INITIAL_BATT_KWH = 0.0
+INITIAL_INV_KW = 0.0
+GEN_INITIAL_KW = GEN_CATALOG_KW[0]
 
 
 @dataclass
@@ -86,12 +95,23 @@ class ModelConfig:
     mip_gap: float = 0.01
     threads: int = 0                     # 0 = solver default
 
-    # --- Economics (frozen copies for convenience) ---
-    discount_rate: float = DISCOUNT_RATE
+    # --- Modular unit sizes (PV, battery, inverter) ---
     pv_unit_kw: float = PV_UNIT_KW
     batt_unit_kwh: float = BATT_UNIT_KWH
+    inv_unit_kw: float = INV_UNIT_KW
+
+    # --- Generator (single unit, catalogue, upgrades only) ---
     gen_catalog_kw: tuple[float, ...] = GEN_CATALOG_KW
-    inv_catalog_kw: tuple[float, ...] = INV_CATALOG_KW
+    gen_salvage_frac: float = GEN_SALVAGE_FRAC
+
+    # --- Brownfield initial condition (existing installed capacity) ---
+    initial_pv_kw: float = INITIAL_PV_KW
+    initial_batt_kwh: float = INITIAL_BATT_KWH
+    initial_inv_kw: float = INITIAL_INV_KW
+    gen_initial_kw: float = GEN_INITIAL_KW
+
+    # --- Economics ---
+    discount_rate: float = DISCOUNT_RATE
 
     def validate(self) -> None:
         """Check internal consistency (stage count vs branching, etc.)."""
@@ -101,6 +121,8 @@ class ModelConfig:
             )
         if self.dispatch_variant not in {"rule_faithful", "baseline"}:
             raise ValueError("dispatch_variant must be 'rule_faithful' or 'baseline'")
+        if self.gen_initial_kw not in (0.0, *self.gen_catalog_kw):
+            raise ValueError("gen_initial_kw must be 0 or a catalogue size")
 
 
 def crf(r: float = DISCOUNT_RATE, n: int = PROJECT_YEARS) -> float:

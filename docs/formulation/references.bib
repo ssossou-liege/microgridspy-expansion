@@ -1,5 +1,4 @@
 % References for the microgrid capacity-expansion formulation.
-% Placeholder entries — to be completed as the document is cited.
 
 @misc{quoilin_energy_transition,
   author       = {Quoilin, Sylvain},
@@ -28,4 +27,93 @@
   pages   = {433--444},
   year    = {2019},
   doi     = {10.1016/j.energy.2019.04.097}
+}
+
+% ---------------------------------------------------------------------------
+% Prior work positioned in Section "Certified-optimal sizing under the
+% rule-based dispatch policy" (surveyed 2026-06).
+% ---------------------------------------------------------------------------
+
+% Camp B — exact mathematical programming, but COST-OPTIMAL dispatch.
+@article{wu2021milp,
+  author  = {Wu, Qiong and Zhao, ... and others},
+  title   = {An {MILP}-Based Planning Model of a Photovoltaic/Diesel/Battery
+             Stand-Alone Microgrid Considering the Reliability},
+  journal = {IEEE Transactions on Smart Grid},
+  volume  = {12},
+  number  = {5},
+  pages   = {3809--3818},
+  year    = {2021},
+  doi     = {10.1109/TSG.2021.3084935}
+}
+
+@article{stevanato2020microgridspy,
+  author  = {Stevanato, Nicol\`o and Lombardi, Francesco and Guidicini, Giulia
+             and others},
+  title   = {Long-term sizing of rural microgrids: Accounting for load
+             evolution through multi-step investment plan and stochastic
+             optimization (MicroGridsPy-MYCE)},
+  journal = {Energy for Sustainable Development},
+  volume  = {58},
+  pages   = {16--29},
+  year    = {2020},
+  doi     = {10.1016/j.esd.2020.07.002}
+}
+
+@misc{akulker2025twostage,
+  author       = {Akulker, Hasan and others},
+  title        = {A two-stage stochastic mixed-integer nonlinear programming
+                  model for optimal design and operation of hybrid microgrids},
+  howpublished = {arXiv:2501.18988},
+  year         = {2025}
+}
+
+@article{ahmed2003msip,
+  author  = {Ahmed, Shabbir and King, Alan J. and Parija, Gyana},
+  title   = {A Multi-Stage Stochastic Integer Programming Approach for
+             Capacity Expansion under Uncertainty},
+  journal = {Journal of Global Optimization},
+  volume  = {26},
+  pages   = {3--24},
+  year    = {2003},
+  doi     = {10.1023/A:1023062915106}
+}
+
+% Camp A and closest hybrids — rule-based / metaheuristic, no certificate.
+@misc{dufolopez_ihoga,
+  author       = {Dufo-L\'opez, Rodolfo and Bernal-Agust\'in, Jos\'e L.},
+  title        = {{iHOGA / MHOGA}: simulation and optimization of stand-alone
+                  and grid-connected hybrid renewable systems},
+  howpublished = {Software, University of Zaragoza, \url{https://ihoga.unizar.es}},
+  note         = {Genetic-algorithm sizing and control-strategy optimization}
+}
+
+@article{lyu2024innerouter,
+  author  = {Lyu, ... and others},
+  title   = {Inner--outer layer co-optimization of sizing and energy management
+             for renewable energy microgrid with storage},
+  journal = {Applied Energy},
+  volume  = {363},
+  pages   = {123066},
+  year    = {2024},
+  doi     = {10.1016/j.apenergy.2024.123066}
+}
+
+@article{zolan2025reopt,
+  author  = {Zolan, Alex and others},
+  title   = {A decomposition approach and progressive-hedging heuristic for
+             distributed-energy-resource sizing with an optimality gap (REopt)},
+  journal = {Optimization and Engineering},
+  volume  = {26},
+  pages   = {613--653},
+  year    = {2025},
+  doi     = {10.1007/s11081-024-09919-y}
+}
+
+@misc{nespoli2025rulebased,
+  author       = {Nespoli, Lorenzo and Medici, Vasco},
+  title        = {Robust Rule-Based Sizing and Control of Batteries for Peak
+                  Shaving},
+  howpublished = {arXiv:2511.21619},
+  year         = {2025}
 }

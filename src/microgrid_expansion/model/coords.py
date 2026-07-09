@@ -5,8 +5,8 @@ Dimensions (formulation, Section "Sets and indices"):
 * ``node``  -- scenario-tree node n.
 * ``rday``  -- representative day t within a node.
 * ``htod``  -- hour-of-day h in 0..23.
-* ``gsize`` -- generator catalogue option s.
-* ``isize`` -- inverter catalogue option s.
+* ``gsize`` -- generator catalogue option s (single active unit; the PV array, battery
+  and inverter are modular integer counts, not catalogue dimensions).
 
 Because the number of representative days is uniform across nodes in the skeleton,
 dispatch variables live on the dense ``(node, rday, htod)`` grid. Per-node scalars
@@ -33,7 +33,6 @@ class Coords:
     rday: np.ndarray
     htod: np.ndarray
     gsize: np.ndarray
-    isize: np.ndarray
     parent: dict[int, int | None]
     prob: pd.Series          # indexed by node
     disc: pd.Series
@@ -52,7 +51,6 @@ def build_coords(
         rday=np.arange(cfg.n_rep_days),
         htod=np.arange(24),
         gsize=np.arange(len(cfg.gen_catalog_kw)),
-        isize=np.arange(len(cfg.inv_catalog_kw)),
         parent=tree.parent,
         prob=pd.Series(tree.prob),
         disc=pd.Series(tree.disc),

@@ -42,7 +42,7 @@ def add_dispatch_constraints(
         balance        rho*cap_pv - q + P_ge + P_dis - P_ch == D - l
         ge_cap         P_ge <= cap_ge
         ge_on          P_ge <= M * y
-        ge_min         P_ge >= phi*sum_s kappa_s x_ge - M*(1-y)
+        ge_min         P_ge >= phi*sum_s kappa_s z_ge - M*(1-y)
         soc_dynamics   e[h+1] == (1-sigma) e[h] + eta_c P_ch - P_dis/eta_d
         soc_cyclic     e[0] == e[24]
         soc_bounds     e_lo*cap_batt <= e <= e_hi*f_e*cap_batt

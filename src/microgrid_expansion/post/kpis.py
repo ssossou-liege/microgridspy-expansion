@@ -4,6 +4,12 @@ Reuses the THESIS net-present-cost accounting (``src/dispatch_assessment/stage2.
 capital cost, O&M, fuel, periodic battery replacement and end-of-horizon salvage,
 annualised through the capital recovery factor. KPIs are reported per node and as the
 probability-weighted expectation over the tree.
+
+Brownfield / replacement accounting: existing capacity (C^g_0) is sunk and carries no
+capital charge; only added modules and generator upgrades are costed. Each asset carries
+a vintage so that battery replacement, generator resale/transfer (V^ge_s) and
+end-of-horizon salvage are timed and depreciated from the installation date, not from
+year 0.
 """
 from __future__ import annotations
 
