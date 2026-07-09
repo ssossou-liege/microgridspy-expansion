@@ -1,0 +1,19 @@
+name: microgrid-expansion
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - xarray
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - pytest
+  - pip
+  - pip:
+      - linopy
+      - highspy            # open-source MILP solver backend for linopy
+      - scikit-learn-extra  # k-medoids (representative days / scenario reduction)
+      - rampdemand          # RAMP stochastic load-profile generator
+      # - gurobipy          # optional commercial solver (requires a licence)

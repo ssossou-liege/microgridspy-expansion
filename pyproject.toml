@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "microgrid-expansion"
+version = "0.1.0"
+description = "Multi-stage stochastic capacity-expansion model for off-grid microgrid sizing"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Scherif Sossou" }]
+dependencies = [
+    "numpy",
+    "pandas",
+    "xarray",
+    "scipy",
+    "scikit-learn",
+    "linopy",
+    "highspy",
+]
+
+[project.optional-dependencies]
+solver = ["gurobipy"]
+kmedoids = ["scikit-learn-extra"]
+demand = ["rampdemand"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+microgrid-expansion = "microgrid_expansion.run:main"

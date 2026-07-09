@@ -1,0 +1,489 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\geometry{margin=2.6cm}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Rpos}{\mathbb{R}_{\geq 0}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Zpos}{\mathbb{Z}_{\geq 0}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\pa}{\mathrm{pa}}
+\newcommand{\diff}{\mathrm{d}}
+
+\title{A Multi-Stage Stochastic Capacity-Expansion Model for the Sizing of
+Off-Grid Solar Microgrids under Demand, Climate and Economic Uncertainty}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document develops the mathematical formulation of a capacity-expansion model
+for the optimal sizing of off-grid solar microgrids serving rural communities. The
+system couples a photovoltaic array, a diesel generator, a lithium iron phosphate
+battery and a hybrid inverter to a community load. Investment and operation are
+exposed to four families of uncertainty---future demand, the renewable resource,
+economic conditions and policy---which are represented by a discrete scenario tree.
+The model is posed as an adaptive multi-stage stochastic program in which capacity is
+expanded incrementally at successive milestone years and operation is dispatched by a
+rule-based generation-balance controller rather than by cost minimisation. We give a
+self-contained statement of the sets, parameters, decision variables, constraints and
+objective, we show how the rule-based controller is reproduced exactly through a small
+number of mixed-integer constraints, and we describe the construction and reduction of
+the scenario tree. The resulting deterministic-equivalent problem is a mixed-integer
+linear program of moderate size.
+\end{abstract}
+
+\tableofcontents
+
+\section{System and modelling framework}
+\label{sec:framework}
+
+We consider a stand-alone (off-grid) microgrid whose generation and storage assets
+must be sized, and subsequently expanded, so as to supply a growing rural community at
+least cost while maintaining an acceptable quality of service. Four technologies are
+available. A photovoltaic array provides non-dispatchable renewable generation; a
+diesel generator provides dispatchable back-up generation; a lithium iron phosphate
+battery provides storage; and a hybrid inverter performs the alternating- and
+direct-current conversions that couple these assets to the load. The community load is
+the only demand, and there is no connection to a larger grid.
+
+The planner faces uncertainty that resolves only gradually over the lifetime of the
+project. The community's demand grows as households connect, acquire appliances and
+change their usage habits; the solar resource evolves with the climate; fuel prices
+and equipment costs follow uncertain trajectories; and policy may impose a minimum
+renewable penetration. Because the planner can observe how these conditions unfold and
+react by expanding capacity at later milestone years, the appropriate decision-making
+paradigm is \emph{adaptive multi-stage stochastic programming}. The uncertain future
+is discretised into a scenario tree (Section~\ref{sec:scenarios}); investment decisions
+are attached to the nodes of this tree and are therefore allowed to depend on, but only
+on, the information revealed up to the stage at which they are taken. This information
+restriction---non-anticipativity---is enforced structurally by the tree indexing
+rather than by explicit coupling constraints.
+
+A distinctive feature of the present model is its treatment of operation. In the
+classical capacity-expansion formulation the second-stage operating problem is itself an
+optimisation that dispatches each asset to minimise short-run cost. Here we instead
+adopt the rule-based ``generation-balance control'' used in off-grid practice, in which
+the dispatch follows a fixed priority order---solar first, then the battery, and the
+diesel generator only as a last resort---together with a look-ahead rule that reserves
+enough stored energy to carry the community through the night. We show in
+Section~\ref{sec:dispatch} that this controller can be reproduced within a mixed-integer
+linear program using a single binary variable per time step, so that the sizing problem
+remains a single mathematical program whose solution is consistent with the operating
+policy that will actually be used in the field.
+
+Throughout, the planning horizon is partitioned into stages indexed by milestone years.
+Within each tree node a full year of operation is represented by a small set of
+weighted representative days, which keeps the operating sub-problem tractable while
+preserving the diurnal and seasonal structure that drives the value of storage. The
+remainder of the document states the model formally.
+
+\section{Sets and indices}
+\label{sec:sets}
+
+The scenario tree is the backbone of the formulation. Its nodes carry both the
+investment decisions and the operating sub-problems, and the economics are aggregated
+over it.
+
+\begin{description}[leftmargin=2.2cm,style=nextline]
+  \item[$\mathcal{N}$] Set of nodes of the scenario tree, indexed by $n$. Each node
+  represents one realisation of the uncertain conditions up to its stage. The unique
+  root node is denoted $n_0$.
+  \item[$\mathcal{G}$] Set of technologies, $\mathcal{G}=\{\mathrm{pv},\,
+  \mathrm{batt},\,\mathrm{ge},\,\mathrm{inv}\}$, denoting respectively the photovoltaic
+  array, the battery, the diesel generator and the inverter. Generator quantities are
+  labelled $\mathrm{ge}$.
+  \item[$\mathcal{T}_n$] Set of representative days associated with node $n$, indexed by
+  $t$. Each representative day stands for a cluster of similar days within the operating
+  year that the node represents.
+  \item[$\mathcal{H}$] Set of intra-day time steps, indexed by $h\in\{0,\dots,23\}$
+  (hourly resolution). Operation is defined on the triples $(n,t,h)$.
+  \item[$\mathcal{S}_{\mathrm{ge}},\ \mathcal{S}_{\mathrm{inv}}$] Discrete catalogues of
+  commercially available generator and inverter ratings, indexed by $s$.
+\end{description}
+
+Three structural maps are defined on the tree. For a non-root node $n$, $\pa(n)$ denotes
+its parent; $\mathrm{stage}(n)\in\{0,1,\dots,S\}$ denotes the stage (milestone year) at
+which $n$ sits; and $\mathcal{L}\subset\mathcal{N}$ denotes the set of leaf nodes, which
+correspond to complete scenarios. The path probability $\pi_n$ of a node is the
+probability that the realised scenario passes through $n$; by construction
+$\sum_{\ell\in\mathcal{L}}\pi_\ell=1$.
+
+\section{Parameters}
+\label{sec:parameters}
+
+Parameters are grouped into those describing the operating environment of a node, the
+technical behaviour of the assets, and the economics. Time-varying environmental
+parameters are indexed by $(n,t,h)$ because each tree node carries its own realisation
+of demand and resource.
+
+\paragraph{Demand and resource.}
+\begin{description}[leftmargin=3.0cm,style=nextline]
+  \item[$D_{n,t,h}$] Community electrical demand in time step $(n,t,h)$ [kW].
+  \item[$\rho_{n,t,h}$] Specific photovoltaic yield, i.e.\ the power produced per unit of
+  installed array capacity [kW\,kW$^{-1}$], obtained from the node's irradiance scenario.
+  \item[$w_{n,t}$] Weight of representative day $t$ in node $n$ [days\,yr$^{-1}$], equal
+  to the number of actual days the representative day stands for; $\sum_{t\in
+  \mathcal{T}_n} w_{n,t}=365$.
+\end{description}
+
+\paragraph{Technical parameters.}
+\begin{description}[leftmargin=3.0cm,style=nextline]
+  \item[$\eta^{\mathrm{c}},\ \eta^{\mathrm{d}}$] One-way charging and discharging
+  efficiencies of the battery.
+  \item[$\sigma_{n,t,h}$] Fractional self-discharge of the battery over one time step,
+  dependent on ambient temperature.
+  \item[{$f^{e}_{n,t,h}\in(0,1]$}] Temperature-dependent usable-capacity factor of the
+  battery, which scales the upper energy limit.
+  \item[$\underline{e},\ \overline{e}$] Lower and upper state-of-charge fractions
+  ($0.05$ and $0.95$), expressing the protective trip limits of the battery management
+  system.
+  \item[$R_{n,t,h}$] Look-ahead night-reserve energy [kWh]: a forecast of the demand
+  remaining until the next sunrise, used by the generation-balance controller to decide
+  when the battery may serve the load (Section~\ref{sec:dispatch}).
+  \item[$\phi^{\mathrm{ge}}$] Minimum stable loading of the generator as a fraction of
+  its rating (taken as $0.30$).
+  \item[$F_0,\ F_1$] Intercept and slope of the linearised generator fuel
+  characteristic [L\,h$^{-1}$ and L\,kWh$^{-1}$], so that the fuel flow is
+  $F_0+F_1 P^{\mathrm{ge}}$ when the generator is on.
+  \item[$\kappa^{\mathrm{ge}}_s,\ \kappa^{\mathrm{inv}}_s$] Rated power of catalogue
+  option $s$ for the generator and the inverter [kW].
+  \item[$u^{\mathrm{pv}},\ u^{\mathrm{batt}}$] Unit increments of capacity: the rated
+  power of a single photovoltaic panel [kW] and the usable energy of a single battery
+  module [kWh].
+\end{description}
+
+\paragraph{Economic parameters.}
+\begin{description}[leftmargin=3.0cm,style=nextline]
+  \item[$C^{\mathrm{inv}}_{g,n}$] Investment (capital) cost of technology $g$ if
+  installed at node $n$ [\$\,kW$^{-1}$ or \$\,kWh$^{-1}$], following the node's cost
+  trajectory.
+  \item[$O_{g}$] Annual operation-and-maintenance cost of technology $g$, expressed as a
+  fraction of its capital cost.
+  \item[$c^{\mathrm{fuel}}_n$] Diesel price at node $n$ [\$\,L$^{-1}$].
+  \item[$c^{\mathrm{deg}}$] Battery throughput-degradation cost [\$\,kWh$^{-1}$ of energy
+  discharged], equal to the replacement cost divided by the lifetime energy throughput.
+  \item[$v$] Value of lost load [\$\,kWh$^{-1}$], the penalty applied to unmet demand.
+  \item[$r$] Annual discount rate.
+  \item[$\delta_n$] Discount factor that brings costs incurred at node $n$ to present
+  value, $\delta_n=(1+r)^{-y(n)}$ where $y(n)$ is the calendar year of $\mathrm{stage}(n)$.
+  \item[$\Delta_n$] Number of operating years that node $n$ represents, i.e.\ the span
+  between its stage and the next milestone.
+\end{description}
+
+\section{Decision variables}
+\label{sec:variables}
+
+The decision variables divide naturally into an investment layer, which is attached to
+the tree nodes and constitutes the adaptive ``here-and-now'' decisions, and an operating
+layer, which is defined on the representative time steps of each node.
+
+\paragraph{Investment layer.} For each node $n$:
+\begin{align}
+  b^{\mathrm{pv}}_n,\ b^{\mathrm{batt}}_n &\in \Zpos
+    && \text{number of panels / battery modules added at $n$,}\\
+  x^{\mathrm{ge}}_{n,s},\ x^{\mathrm{inv}}_{n,s} &\in \{0,1\}
+    && \text{selection of generator / inverter size $s$ at $n$,}\\
+  \mathrm{cap}^{g}_n &\in \Rpos
+    && \text{cumulative installed capacity of technology $g$ available at $n$.}
+\end{align}
+At most one new generator and one new inverter may be added at a node, so
+$\sum_{s} x^{\mathrm{ge}}_{n,s}\leq 1$ and $\sum_{s} x^{\mathrm{inv}}_{n,s}\leq 1$.
+
+\paragraph{Operating layer.} For each time step $(n,t,h)$:
+\begin{align}
+  P^{\mathrm{ge}}_{n,t,h} &\in \Rpos && \text{generator power output [kW],}\\
+  P^{\mathrm{c}}_{n,t,h},\ P^{\mathrm{d}}_{n,t,h} &\in \Rpos
+    && \text{battery charging / discharging power [kW],}\\
+  e_{n,t,h} &\in \Rpos && \text{battery energy content (state of charge) [kWh],}\\
+  q_{n,t,h} &\in \Rpos && \text{curtailed photovoltaic power [kW],}\\
+  \ell_{n,t,h} &\in \Rpos && \text{unmet demand (loss of load) [kW],}\\
+  y_{n,t,h} &\in \{0,1\} && \text{generator commitment (on/off).}
+\end{align}
+The binary commitment $y_{n,t,h}$ is the only integer operating variable, and there is
+exactly one such variable per time step.
+
+\section{Constraints}
+\label{sec:constraints}
+
+\subsection{Capacity accumulation and non-anticipativity}
+\label{sec:capacity}
+
+Capacity is incremental: the capacity available at a node equals the capacity inherited
+from its parent plus whatever is added at the node. Writing the increment in physical
+units,
+\begin{align}
+  \mathrm{cap}^{\mathrm{pv}}_n   &= \mathrm{cap}^{\mathrm{pv}}_{\pa(n)}
+      + u^{\mathrm{pv}}\, b^{\mathrm{pv}}_n, \label{eq:cap-pv}\\
+  \mathrm{cap}^{\mathrm{batt}}_n &= \mathrm{cap}^{\mathrm{batt}}_{\pa(n)}
+      + u^{\mathrm{batt}}\, b^{\mathrm{batt}}_n, \label{eq:cap-batt}\\
+  \mathrm{cap}^{\mathrm{ge}}_n   &= \mathrm{cap}^{\mathrm{ge}}_{\pa(n)}
+      + \sum_{s\in\mathcal{S}_{\mathrm{ge}}} \kappa^{\mathrm{ge}}_s\, x^{\mathrm{ge}}_{n,s},
+      \label{eq:cap-ge}\\
+  \mathrm{cap}^{\mathrm{inv}}_n  &= \mathrm{cap}^{\mathrm{inv}}_{\pa(n)}
+      + \sum_{s\in\mathcal{S}_{\mathrm{inv}}} \kappa^{\mathrm{inv}}_s\, x^{\mathrm{inv}}_{n,s},
+      \label{eq:cap-inv}
+\end{align}
+for every $n\in\mathcal{N}$, with the convention that the parent capacities of the root
+are zero, $\mathrm{cap}^{g}_{\pa(n_0)}=0$. Because every scenario that shares a common
+history passes through the same node, and because the investment variables are indexed
+by node rather than by scenario, the non-anticipativity of the decisions is enforced
+implicitly by the recursions~\eqref{eq:cap-pv}--\eqref{eq:cap-inv}: two scenarios cannot
+be assigned different capacities before the stage at which they diverge. No additional
+coupling constraints are required.
+
+\subsection{Power balance}
+\label{sec:balance}
+
+In each operating time step the instantaneous supply must equal the served demand. With
+the photovoltaic contribution given by the available yield net of curtailment, the
+balance reads
+\begin{equation}
+  \rho_{n,t,h}\,\mathrm{cap}^{\mathrm{pv}}_n - q_{n,t,h}
+  + P^{\mathrm{ge}}_{n,t,h}
+  + P^{\mathrm{d}}_{n,t,h} - P^{\mathrm{c}}_{n,t,h}
+  = D_{n,t,h} - \ell_{n,t,h},
+  \qquad \forall (n,t,h).
+  \label{eq:balance}
+\end{equation}
+The product $\rho_{n,t,h}\,\mathrm{cap}^{\mathrm{pv}}_n$ couples a parameter to a decision
+variable and is therefore linear. Battery discharging adds to supply while charging adds
+to the demand side; unmet demand $\ell_{n,t,h}$ relaxes the balance at the cost of the
+value of lost load.
+
+\subsection{Generator operation}
+\label{sec:generator}
+
+The generator may produce power only when committed, must respect its installed rating,
+and---when running---must operate above its minimum stable loading. With $M$ a
+sufficiently large constant (conveniently the largest catalogue rating),
+\begin{align}
+  P^{\mathrm{ge}}_{n,t,h} &\leq \mathrm{cap}^{\mathrm{ge}}_n, \label{eq:ge-cap}\\
+  P^{\mathrm{ge}}_{n,t,h} &\leq M\, y_{n,t,h}, \label{eq:ge-on}\\
+  P^{\mathrm{ge}}_{n,t,h} &\geq \phi^{\mathrm{ge}}
+      \Big(\sum_{s\in\mathcal{S}_{\mathrm{ge}}}\kappa^{\mathrm{ge}}_s\,
+      x^{\mathrm{ge}}_{n,s}\Big) - M\,(1-y_{n,t,h}). \label{eq:ge-min}
+\end{align}
+Constraint~\eqref{eq:ge-on} forces the output to zero when the unit is off; together with
+\eqref{eq:ge-min} it imposes the minimum loading $\phi^{\mathrm{ge}}$ of the selected
+generator rating when the unit is on, and is vacuous when it is off. The minimum-loading
+right-hand side is built from the same selection variables $x^{\mathrm{ge}}_{n,s}$ used
+in the capacity recursion, so no additional integer variable is introduced.
+
+\subsection{Battery storage dynamics}
+\label{sec:battery}
+
+The battery energy content evolves from one time step to the next according to a charge
+balance that accounts for conversion losses and self-discharge,
+\begin{equation}
+  e_{n,t,h+1} = (1-\sigma_{n,t,h})\,e_{n,t,h}
+  + \eta^{\mathrm{c}}\,P^{\mathrm{c}}_{n,t,h}
+  - \frac{P^{\mathrm{d}}_{n,t,h}}{\eta^{\mathrm{d}}},
+  \qquad \forall (n,t,h).
+  \label{eq:soc-dynamics}
+\end{equation}
+Each representative day is treated as a self-contained cycle, so that the energy content
+returns to its initial level at the end of the day,
+\begin{equation}
+  e_{n,t,0} = e_{n,t,24},
+  \qquad \forall (n,t).
+  \label{eq:soc-cyclic}
+\end{equation}
+This cyclic closure removes the need to couple consecutive representative days and keeps
+each day's operating sub-problem independent given the installed capacities. The stored
+energy is bounded below by the protective discharge trip and above by the
+temperature-derated usable capacity,
+\begin{equation}
+  \underline{e}\,\mathrm{cap}^{\mathrm{batt}}_n
+  \;\leq\; e_{n,t,h} \;\leq\;
+  \overline{e}\, f^{e}_{n,t,h}\,\mathrm{cap}^{\mathrm{batt}}_n,
+  \qquad \forall (n,t,h).
+  \label{eq:soc-bounds}
+\end{equation}
+Charging and discharging powers are limited by the inverter rating and, through it, by
+the battery's admissible charge rate,
+\begin{equation}
+  P^{\mathrm{c}}_{n,t,h} \leq \mathrm{cap}^{\mathrm{inv}}_n,
+  \qquad
+  P^{\mathrm{d}}_{n,t,h} \leq \mathrm{cap}^{\mathrm{inv}}_n,
+  \qquad \forall (n,t,h).
+  \label{eq:inv-bounds}
+\end{equation}
+
+\subsection{Rule-based generation-balance control}
+\label{sec:dispatch}
+
+The operating policy of the microgrid is not cost minimisation but the rule-based
+generation-balance controller used in off-grid practice. Its priority order is
+straightforward: photovoltaic power serves the load first; any surplus charges the
+battery and is curtailed only once the battery is full; remaining demand is met from the
+battery; and the generator is started only when the battery alone cannot carry the load.
+A look-ahead rule refines this priority at night: the battery is allowed to serve the
+load only if it holds enough energy to last until sunrise, and otherwise the generator is
+started and used both to serve the load and to recharge the battery up to---but no
+further than---the level required for the night.
+
+The central modelling observation is that this controller need not be expressed through
+a cascade of logical conditions. The priority order is reproduced by the combination of
+the power balance~\eqref{eq:balance}, the generator commitment
+constraints~\eqref{eq:ge-cap}--\eqref{eq:ge-min} and the operating economics, because the
+objective penalises generator fuel and curtailment; under that objective the optimiser
+spontaneously prefers solar, then battery, then generator. The only genuinely additional
+behaviour is the look-ahead night reserve, which we impose as a deterministic
+time-varying floor on the stored energy,
+\begin{equation}
+  e_{n,t,h} \;\geq\; R_{n,t,h},
+  \qquad \forall (n,t,h).
+  \label{eq:night-reserve}
+\end{equation}
+The reserve $R_{n,t,h}$ is precomputed from the forecast demand between time step $h$ and
+the following sunrise, clipped to the installed energy capacity. Constraint
+\eqref{eq:night-reserve} forces the controller to keep---or to recharge, using the
+generator if necessary---enough energy to carry the community through the night, exactly
+as the look-ahead rule prescribes, and it does so without introducing any binary
+variable. The generation-balance controller is therefore encoded with a single binary
+per time step, namely the generator commitment $y_{n,t,h}$.
+
+Two encodings of the operating layer are retained. In the \emph{baseline} encoding the
+constraints \eqref{eq:balance}--\eqref{eq:inv-bounds} are used together with the cost
+objective alone; the dispatch is then cost-optimal within the feasible operating
+envelope and serves as a tractable reference. In the \emph{rule-faithful} encoding the
+night-reserve floor~\eqref{eq:night-reserve} is added, so that the dispatch reproduces the
+field controller. The rule-faithful encoding is the model of record; the baseline is used
+for validation.
+
+\subsection{Curtailment and unmet demand}
+\label{sec:slacks}
+
+Curtailment cannot exceed the available photovoltaic power, and unmet demand cannot
+exceed the demand itself,
+\begin{equation}
+  0 \leq q_{n,t,h} \leq \rho_{n,t,h}\,\mathrm{cap}^{\mathrm{pv}}_n,
+  \qquad
+  0 \leq \ell_{n,t,h} \leq D_{n,t,h},
+  \qquad \forall (n,t,h).
+  \label{eq:slacks}
+\end{equation}
+
+\section{Objective}
+\label{sec:objective}
+
+The planner minimises the expected discounted total cost over the scenario tree. The
+cost incurred at a node comprises the capital cost of the capacity added there, the
+annual operation-and-maintenance cost of the cumulative fleet, and the operating cost of
+the representative year---fuel, battery degradation and the penalty on unmet demand---
+scaled by the number of operating years the node represents. Writing the incremental
+capital cost of node $n$ as
+\begin{equation}
+  K_n \;=\;
+  C^{\mathrm{inv}}_{\mathrm{pv},n}\,u^{\mathrm{pv}} b^{\mathrm{pv}}_n
+  + C^{\mathrm{inv}}_{\mathrm{batt},n}\,u^{\mathrm{batt}} b^{\mathrm{batt}}_n
+  + \sum_{s} C^{\mathrm{inv}}_{\mathrm{ge},n}\kappa^{\mathrm{ge}}_s x^{\mathrm{ge}}_{n,s}
+  + \sum_{s} C^{\mathrm{inv}}_{\mathrm{inv},n}\kappa^{\mathrm{inv}}_s x^{\mathrm{inv}}_{n,s},
+\end{equation}
+the annual maintenance cost of the cumulative fleet as
+\begin{equation}
+  O_n \;=\; \sum_{g\in\mathcal{G}} O_g\, C^{\mathrm{inv}}_{g,n}\,\mathrm{cap}^{g}_n,
+\end{equation}
+and the operating cost of one representative year as
+\begin{equation}
+  G_n \;=\; \sum_{t\in\mathcal{T}_n} w_{n,t} \sum_{h\in\mathcal{H}}
+  \Big[
+    c^{\mathrm{fuel}}_n\big(F_0\,y_{n,t,h} + F_1\,P^{\mathrm{ge}}_{n,t,h}\big)
+    + c^{\mathrm{deg}}\,P^{\mathrm{d}}_{n,t,h}
+    + v\,\ell_{n,t,h}
+  \Big],
+\end{equation}
+the objective is
+\begin{equation}
+  \min \quad
+  \sum_{n\in\mathcal{N}} \pi_n\,\delta_n
+  \big( K_n + \Delta_n\,O_n + \Delta_n\,G_n \big).
+  \label{eq:objective}
+\end{equation}
+The path probabilities $\pi_n$ weight each node by the likelihood of its history, so that
+\eqref{eq:objective} is the expectation of the discounted life-cycle cost over the
+scenario tree---a risk-neutral criterion. Periodic battery replacement and end-of-horizon
+salvage are valued in post-processing through the standard net-present-cost accounting and
+reported alongside the levelised cost of electricity, defined as the annualised net
+present cost divided by the energy served.
+
+\section{Uncertainty space, scenario generation and reduction}
+\label{sec:scenarios}
+
+\subsection{The four families of uncertainty}
+
+The uncertain future is described by four families of random factors, each evolving along
+the planning horizon.
+\begin{description}[leftmargin=2.4cm,style=nextline]
+  \item[Demand] The community load is generated bottom-up from appliance ownership and
+  usage. Three random trajectories are sampled: the number of connections per customer
+  type, the appliance stock per customer type (the name, count and rated power of each
+  appliance), and the usage patterns (total functioning time, functioning time per
+  switch-on event, time-of-use windows and the probability of occasional use). These feed
+  a stochastic load-profile generator calibrated on household surveys and meter readings.
+  \item[Renewable resource] The solar resource follows one of the shared
+  socio-economic pathways SSP1-2.6, SSP2-4.5, SSP3-7.0 and SSP5-8.5, each of which yields
+  a distinct trajectory of irradiance and ambient temperature and hence of the specific
+  yield $\rho$.
+  \item[Economic conditions] The diesel price and the investment-cost trajectories of the
+  photovoltaic array, the battery, the generator and the inverter are sampled, capturing
+  fuel-market volatility and technology learning.
+  \item[Policy] A minimum solar-penetration target may be imposed, sampled as a discrete
+  policy factor.
+\end{description}
+
+\subsection{Monte-Carlo sampling, scenario reduction and tree construction}
+
+A large Monte-Carlo ensemble of complete scenario paths is drawn by sampling each family
+of uncertainty along the horizon. Because the resulting ensemble is far too large to
+optimise over directly, it is condensed in two complementary ways.
+
+First, the ensemble is reduced \emph{across scenarios}. At each stage the sampled
+outcomes are clustered---by a medoid-based reduction such as $k$-medoids or fast-forward
+selection on a feature representation of the paths---to a small set of representative
+outcomes, each carrying the probability mass of its cluster. Nesting the stage-wise
+representative outcomes produces a branching scenario tree: a node at one stage gives
+rise to several children at the next, and the path probability $\pi_n$ is the product of
+the conditional branch probabilities along the path. A two-stage program is recovered as
+the special case of a tree with a single decision node at the first stage.
+
+Second, the ensemble is reduced \emph{in time}. Within each node, the full operating year
+is compressed into a handful of weighted representative days (typically four to twelve) by
+clustering the daily demand and resource shapes, the medoid of each cluster becoming a
+representative day $t$ with weight $w_{n,t}$ equal to the size of its cluster. This
+time-domain reduction, combined with the cyclic closure~\eqref{eq:soc-cyclic}, is what
+keeps the operating sub-problems small enough that the whole tree can be optimised at
+once. The error introduced by both reductions, relative to the full ensemble, is
+quantified and reported so that the compression remains transparent.
+
+\section{Deterministic equivalent and solution}
+\label{sec:solution}
+
+Collecting the node-indexed investment variables, the time-step-indexed operating
+variables, the constraints of Section~\ref{sec:constraints} over all nodes and time
+steps, and the objective~\eqref{eq:objective} yields a single mixed-integer linear
+program---the deterministic equivalent of the multi-stage stochastic program. Its only
+integer variables are the capacity increments $b^{\mathrm{pv}}_n$, $b^{\mathrm{batt}}_n$,
+the catalogue selectors $x^{\mathrm{ge}}_{n,s}$, $x^{\mathrm{inv}}_{n,s}$, and one
+generator-commitment binary per operating time step. The number of commitment binaries is
+the product of the number of tree nodes, the number of representative days per node and
+the twenty-four hours of the day; with a modest number of representative days this remains
+well within the reach of contemporary mixed-integer solvers. The non-anticipativity of the
+investment policy is, as noted, embedded in the tree indexing and requires no explicit
+constraints. The model is implemented in an algebraic modelling layer over labelled
+multidimensional arrays and solved by a standard branch-and-cut solver.
+
+\end{document}

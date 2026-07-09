@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+.ipynb_checkpoints/
+
+# Solver / model artifacts
+*.lp
+*.mps
+*.sol
+*.ilp
+*.log
+
+# Results (keep summaries, ignore bulk outputs)
+results/**
+!results/.gitkeep
+!results/**/summary*.csv
+!results/**/summary*.json
+
+# LaTeX build
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+docs/formulation/*.pdf
+
+# Data (large imported inputs); keep provenance note
+data/**
+!data/README.md
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
