@@ -60,106 +60,35 @@ def generate_clear_sky_ghi(lat, lon, time_index, transmission_factor=1.0):
 # DOWNLOAD HISTORICAL ERA5 DATA (HOURLY)
 # ==============================================================================
 era5_file = f"{output_dir}/era5_historical_hourly.nc"
-for year in HIST_YEARS:
-    target_file = f"{output_dir}/era5_{year}.nc"
-    tmp_grib = f"{output_dir}/era5_{year}.grib"
-    
-    if not os.path.exists(target_file):
-        print(f"--> Downloading ERA5 data for year {year} (GRIB format)...")
-        try:
-            # Step 1: Download in native GRIB format to bypass NetCDF cost limits
-            c.retrieve(
-                "reanalysis-era5-single-levels",
-                {
-                    "product_type": "reanalysis",
-                    "data_format": "grib",  
-                    "variable": [
-                        "surface_solar_radiation_downwards", 
-                        "2m_temperature", 
-                        "10m_wind_speed"
-                        ],
-                    "year": str(year),
-                    "month": [f"{m:02d}" for m in range(1, 13)],
-                    "day": [f"{d:02d}" for d in range(1, 32)],
-                    "time": [f"{h:02d}:00" for h in range(0, 24)],
-                    "area": MICRO_BOX,  # Removed 'grid' parameter to stabilize cost valuation
-                },
-                tmp_grib
-            )
-            
-            # Step 2: Convert to NetCDF locally using xarray and cfgrib
-            print(f"--> Converting {year} GRIB to NetCDF locally...")
-            with xr.open_dataset(tmp_grib, engine="cfgrib") as ds_grib:
-                ds_grib.to_netcdf(target_file)
-            
-            # Clean up the temporary GRIB file
-            if os.path.exists(tmp_grib):
-                os.remove(tmp_grib)
-                
-        except Exception as e:
-                # Fallback multi-semester strategy if a single request still encounters issues
-                print(f"--> Year request encountered an error: {e}. Attempting split-season recovery for {year}...")
-                tmp_grib_p1 = f"{target_file}.p1.grib"
-                tmp_grib_p2 = f"{target_file}.p2.grib"
-                
-                # First semester
-                c.retrieve("reanalysis-era5-single-levels", {
-                    "product_type": "reanalysis", "data_format": "grib",
-                    "variable": ["surface_solar_radiation_downwards", "2m_temperature", "10m_wind_speed"],
-                    "year": str(year), "month": [f"{m:02d}" for m in range(1, 7)],
-                    "day": [f"{d:02d}" for d in range(1, 32)], "time": [f"{h:02d}:00" for h in range(0, 24)],
-                    "area": MICRO_BOX
-                }, tmp_grib_p1)
-                
-                # Second semester
-                c.retrieve("reanalysis-era5-single-levels", {
-                    "product_type": "reanalysis", "data_format": "grib",
-                    "variable": ["surface_solar_radiation_downwards", "2m_temperature", "10m_wind_speed"],
-                    "year": str(year), "month": [f"{m:02d}" for m in range(7, 13)],
-                    "day": [f"{d:02d}" for d in range(1, 32)], "time": [f"{h:02d}:00" for h in range(0, 24)],
-                    "area": MICRO_BOX
-                }, tmp_grib_p2)
-                
-                # Convert and merge semesters instantly
-                ds_p1 = xr.open_dataset(tmp_grib_p1, engine="cfgrib")
-                ds_p2 = xr.open_dataset(tmp_grib_p2, engine="cfgrib")
-                xr.concat([ds_p1, ds_p2], dim="time").to_netcdf(target_file)
-                
-                ds_p1.close()
-                ds_p2.close()
-                os.remove(tmp_grib_p1)
-                os.remove(tmp_grib_p2)
-
 if not os.path.exists(era5_file):
-    print("--> Merging yearly ERA5 point files...")
-    ds_merged = xr.open_mfdataset(f"{output_dir}/era5_*.nc", combine='by_coords')
-    ds_merged.to_netcdf(era5_file)
-    ds_merged.close()
-    
-    # Clean up temporary yearly NetCDF files
-    for year in HIST_YEARS:
-        try: os.remove(f"{output_dir}/era5_{year}.nc")
-        except: pass
+    print("--> Downloading 5-year historical hourly ERA5 weather data...")
+    c.retrieve(
+        "reanalysis-era5-land-timeseries",
+        {
+            "variable": [
+                "surface_solar_radiation_downwards",  # ssrd (GHI)
+                "2m_temperature",                     # t2m (Air Temperature)
+                "10m_u_component_of_wind",                     # si10 (Wind Speed)
+                "10m_v_component_of_wind"                      # si10 (Wind Speed)
+            ],
+            "location": {"longitude": LON_TARGET, "latitude": LAT_TARGET},
+            "date": [f"{HIST_YEARS[0]}-01-01/{HIST_YEARS[-1]}-12-31"],
+            "data_format": "netcdf"
+        }        
+    ).download(era5_file)
 
 # ==============================================================================
 # ANALYZE HISTORICAL K_T VARIABILITY (STOCHASTIC MODEL CALIBRATION)
 # ==============================================================================
-print("--> Calibrating stochastic cloud perturbation model from ERA5...")
+print("--> Processing historical data and calibrating weather profiles...")
 ds_era5 = xr.open_dataset(era5_file)
 
-# Dynamic mapping adjustment for GRIB standard names if needed
-# GRIB variables typically default to 'ssrd', 't2m', and 'si10'
-lat_name = "latitude" if "latitude" in ds_era5.coords else "lat"
-lon_name = "longitude" if "longitude" in ds_era5.coords else "lon"
+era5_time = pd.to_datetime(ds_era5["valid_time"].values)
 
-ds_pixel = ds_era5.sel({lat_name: LAT_TARGET, lon_name: LON_TARGET}, method="nearest")
-
-era5_time = pd.to_datetime(ds_pixel["time"].values)
-
-# Convert accumulated Joules/m2 over 1 hour step to average flux in W/m2
-era5_ghi = ds_pixel["ssrd"].values / 3600.0  # Convert J/m2 to W/m2
-era5_temp = ds_pixel["t2m"].values - 273.15  # Convert Kelvin to Celsius
-era5_wind = ds_pixel["si10"].values          # m/s
+# Conversion of units for ERA5 variables
+era5_ghi = ds_era5["ssrd"].values / 3600.0  # Convert J/m2 to W/m2
+era5_temp = ds_era5["t2m"].values - 273.15  # Convert Kelvin to Celsius
+era5_wind = np.sqrt(ds_era5["u10"].values**2 + ds_era5["v10"].values**2)  # Calculate wind speed: sqrt(u^2 + v^2) m/s
 
 
 # Calculate local transmission factor based on historical clear-sky GHI vs ERA5 GHI during daytime hours

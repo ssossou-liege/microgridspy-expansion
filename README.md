@@ -1,4 +1,4 @@
-# microgrid-expansion
+# microgrid-expansion (Development in Progress...)
 
 A multi-stage stochastic capacity-expansion model for sizing off-grid microgrids
 (PV array + diesel generator + battery + hybrid inverter + community load)
@@ -9,6 +9,8 @@ tree and solved as a single deterministic-equivalent MILP with
 [linopy](https://linopy.readthedocs.io/) (HiGHS by default, Gurobi optional). Unlike a cost-optimal dispatch, the operational layer encodes the **uGrid rule-based generation-balance control** as binary-light MILP constraints.
 
 ## Layout
+
+```Check the development status in docs/ROADMAP.md```
 
 ```
 docs/formulation/model.tex   Academic formulation (sets, parameters, variables,
